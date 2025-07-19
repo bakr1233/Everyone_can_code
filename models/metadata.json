@@ -1,16 +1,17 @@
 {
-  "training_date": "2025-07-19T13:45:50.311402",
-  "dataset_size": 491914,
+  "training_date": "2025-07-19T15:27:43.355169",
+  "dataset_size": 49873,
   "emotion_classes": [
-    "anxiety",
-    "depression",
-    "grief",
-    "happiness",
+    "courage",
+    "general",
+    "gratitude",
+    "growth",
     "hope",
     "love",
-    "mindfulness",
     "motivation",
-    "resilience",
+    "peace",
+    "perseverance",
+    "success",
     "wisdom"
   ],
   "vectorizer_features": 3000

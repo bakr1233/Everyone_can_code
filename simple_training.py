@@ -25,13 +25,13 @@ def train_simple_system():
     try:
         # Load dataset
         logger.info("🔄 Loading dataset...")
-        df = pd.read_csv('data/raw/quotes_problem_solution.csv', low_memory=False)
+        df = pd.read_csv('data/processed/quotes_processed.csv', low_memory=False)
         logger.info(f"✅ Loaded {len(df)} quotes")
         
         # Clean data
         df['quote'] = df['quote'].fillna('')
         df['author'] = df['author'].fillna('Unknown')
-        df['category'] = df['category'].fillna('general')
+        df['emotion'] = df['emotion'].fillna('wisdom')
         
         # Remove duplicates
         df = df.drop_duplicates(subset=['quote'])
@@ -51,24 +51,9 @@ def train_simple_system():
             'hope': ['hope', 'faith', 'believe', 'trust', 'optimism', 'positive', 'future', 'better', 'light', 'heal']
         }
         
-        # Assign emotions to quotes
-        logger.info("🔄 Assigning emotions to quotes...")
-        assigned_emotions = []
-        
-        for _, row in df.iterrows():
-            quote_text = row['quote'].lower()
-            matched_emotions = []
-            
-            for emotion, keywords in emotion_keywords.items():
-                if any(keyword in quote_text for keyword in keywords):
-                    matched_emotions.append(emotion)
-            
-            if matched_emotions:
-                assigned_emotions.append(matched_emotions[0])
-            else:
-                assigned_emotions.append('wisdom')  # Default
-        
-        df['assigned_emotion'] = assigned_emotions
+        # Use existing emotions from the dataset
+        logger.info("🔄 Using existing emotion classifications...")
+        df['assigned_emotion'] = df['emotion']
         
         # Create TF-IDF vectorizer
         logger.info("🔄 Creating TF-IDF vectorizer...")
