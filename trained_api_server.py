@@ -46,8 +46,8 @@ class TrainedQuoteEngine:
         """Load trained models"""
         try:
             import pandas as pd, os
-            # Load merged CSV
-            all_quotes_path = os.path.join('data', 'processed', 'all_quotes.csv')
+            # Load merged and cleaned archive CSV
+            all_quotes_path = os.path.join('data', 'processed', 'all_archive_quotes_cleaned.csv')
             if os.path.exists(all_quotes_path):
                 self.quotes_df = pd.read_csv(all_quotes_path)
                 self.is_loaded = True
@@ -68,6 +68,36 @@ class TrainedQuoteEngine:
                     return emotion
         return 'general'
     
+    def is_relevant_grief_quote(self, quote):
+        text = str(quote).lower()
+        grief_keywords = ['death', 'died', 'loss', 'lost', 'grief', 'mourning', 'bereavement']
+        relationship_keywords = ['mother', 'father', 'mom', 'dad', 'parent', 'friend', 'sister', 'brother', 'loved one', 'husband', 'wife', 'child', 'son', 'daughter']
+        return (any(gk in text for gk in grief_keywords) and any(rk in text for rk in relationship_keywords))
+
+    def is_relevant_love_quote(self, quote):
+        text = str(quote).lower()
+        love_keywords = ['love', 'heart', 'romance', 'affection', 'cherish', 'adore', 'relationship']
+        breakup_keywords = ['breakup', 'break up', 'broken heart', 'lost love', 'separation', 'divorce', 'unrequited', 'rejected', 'ex-', 'ex ']
+        return (any(lk in text for lk in love_keywords) and any(bk in text for bk in breakup_keywords))
+
+    def is_relevant_anxiety_quote(self, quote):
+        text = str(quote).lower()
+        anxiety_keywords = ['anxious', 'anxiety', 'panic', 'worry', 'worried', 'nervous', 'restless']
+        stress_keywords = ['stress', 'fear', 'afraid', 'overwhelmed', 'scared', 'pressure']
+        return (any(ak in text for ak in anxiety_keywords) and any(sk in text for sk in stress_keywords))
+
+    def is_relevant_depression_quote(self, quote):
+        text = str(quote).lower()
+        depression_keywords = ['depressed', 'depression', 'hopeless', 'despair', 'numb', 'empty', 'worthless', 'tired', 'exhausted']
+        hopelessness_keywords = ['hopeless', 'meaningless', 'pointless', 'empty', 'alone', 'dark', 'lost', 'nothing matters']
+        return (any(dk in text for dk in depression_keywords) and any(hk in text for hk in hopelessness_keywords))
+    
+    def is_relevant_burnout_quote(self, quote):
+        text = str(quote).lower()
+        burnout_keywords = ['burnout', 'burnt out', 'tired', 'exhausted', 'overwhelmed', 'hopeless', 'gave up', 'no power', "can't continue", 'fatigued', 'drained']
+        study_keywords = ['school', 'study', 'studying', 'exam', 'university', 'class', 'homework', 'assignment', 'test', 'grades', 'college', 'education', 'teacher', 'student']
+        return (any(bk in text for bk in burnout_keywords) and any(sk in text for sk in study_keywords))
+
     def get_recommendations(self, user_input: str, top_k: int = 5) -> list:
         """Get personalized quote recommendations using simple training models"""
         if not self.is_loaded or self.quotes_df is None:
@@ -83,6 +113,19 @@ class TrainedQuoteEngine:
                 emotion_quotes = self.quotes_df[self.quotes_df['assigned_emotion'].str.lower() == 'general']
             else:
                 emotion_quotes = self.quotes_df[self.quotes_df['emotion'].str.lower() == 'general']
+        # Multi-keyword/context filtering for sensitive emotions
+        if emotion == 'grief':
+            emotion_quotes = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_grief_quote)]
+        elif emotion == 'love':
+            emotion_quotes = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_love_quote)]
+        elif emotion == 'anxiety':
+            emotion_quotes = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_anxiety_quote)]
+        elif emotion == 'depression':
+            emotion_quotes = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_depression_quote)]
+        # Burnout/study/school context filter
+        burnout_input_keywords = ['burnout', 'burnt out', 'study', 'school', 'exam', 'university', 'class', 'homework', 'assignment', 'test', 'grades', 'college', 'education', 'teacher', 'student']
+        if any(word in user_input.lower() for word in burnout_input_keywords):
+            emotion_quotes = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_burnout_quote)]
         # Filter by length
         emotion_quotes = self._filter_quotes_by_length(emotion_quotes)
         if len(emotion_quotes) <= top_k:
