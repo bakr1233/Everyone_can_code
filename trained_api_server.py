@@ -80,6 +80,30 @@ class TrainedQuoteEngine:
         breakup_keywords = ['breakup', 'break up', 'broken heart', 'lost love', 'separation', 'divorce', 'unrequited', 'rejected', 'ex-', 'ex ']
         return (any(lk in text for lk in love_keywords) and any(bk in text for bk in breakup_keywords))
 
+    def is_relevant_loneliness_quote(self, quote):
+        text = str(quote).lower()
+        loneliness_keywords = ['lonely', 'alone', 'isolation', 'solitude', 'abandoned', 'left out', 'friendless', 'nobody', 'by myself']
+        sadness_keywords = ['sad', 'depressed', 'hopeless', 'empty', 'cry', 'pain', 'hurt']
+        return (any(lk in text for lk in loneliness_keywords) and any(sk in text for sk in sadness_keywords))
+
+    def is_relevant_failure_quote(self, quote):
+        text = str(quote).lower()
+        failure_keywords = ['fail', 'failure', 'mistake', 'lost', 'defeat', 'give up', 'quit', 'setback', 'disappoint']
+        growth_keywords = ['learn', 'growth', 'try', 'improve', 'overcome', 'persevere', 'resilience', 'bounce back']
+        return (any(fk in text for fk in failure_keywords) and any(gk in text for gk in growth_keywords))
+
+    def is_relevant_motivation_quote(self, quote):
+        text = str(quote).lower()
+        motivation_keywords = ['motivate', 'motivation', 'inspire', 'drive', 'goal', 'achieve', 'success', 'dream', 'aspire', 'ambition']
+        action_keywords = ['action', 'work', 'do', 'start', 'begin', 'move', 'push', 'progress', 'step', 'effort']
+        return (any(mk in text for mk in motivation_keywords) and any(ak in text for ak in action_keywords))
+
+    def is_relevant_happiness_quote(self, quote):
+        text = str(quote).lower()
+        happiness_keywords = ['happy', 'happiness', 'joy', 'cheer', 'smile', 'delight', 'pleasure', 'content', 'enjoy']
+        life_keywords = ['life', 'living', 'moment', 'present', 'now', 'enjoy', 'grateful', 'gratitude']
+        return (any(hk in text for hk in happiness_keywords) and any(lk in text for lk in life_keywords))
+
     def is_relevant_anxiety_quote(self, quote):
         text = str(quote).lower()
         anxiety_keywords = ['anxious', 'anxiety', 'panic', 'worry', 'worried', 'nervous', 'restless']
@@ -97,6 +121,15 @@ class TrainedQuoteEngine:
         burnout_keywords = ['burnout', 'burnt out', 'tired', 'exhausted', 'overwhelmed', 'hopeless', 'gave up', 'no power', "can't continue", 'fatigued', 'drained']
         study_keywords = ['school', 'study', 'studying', 'exam', 'university', 'class', 'homework', 'assignment', 'test', 'grades', 'college', 'education', 'teacher', 'student']
         return (any(bk in text for bk in burnout_keywords) and any(sk in text for sk in study_keywords))
+
+    def is_relevant_breakup_quote(self, quote):
+        text = str(quote).lower()
+        love_keywords = ['love', 'heart', 'romance', 'affection', 'cherish', 'adore', 'relationship']
+        breakup_keywords = [
+            'breakup', 'break up', 'broken heart', 'lost love', 'separation', 'divorce', 'unrequited', 'rejected',
+            'ex-', 'ex ', 'move on', 'heartbreak', 'left me', 'cheated', 'another person', 'dumped', 'relationship ended'
+        ]
+        return (any(lk in text for lk in love_keywords) and any(bk in text for bk in breakup_keywords))
 
     def get_recommendations(self, user_input: str, top_k: int = 5) -> list:
         """Get personalized quote recommendations using simple training models"""
@@ -117,11 +150,32 @@ class TrainedQuoteEngine:
         if emotion == 'grief':
             emotion_quotes = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_grief_quote)]
         elif emotion == 'love':
-            emotion_quotes = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_love_quote)]
+            # Breakup context filter
+            breakup_keywords = [
+                'breakup', 'break up', 'broken heart', 'lost love', 'separation', 'divorce', 'unrequited', 'rejected',
+                'ex-', 'ex ', 'move on', 'heartbreak', 'left me', 'cheated', 'another person', 'dumped', 'relationship ended'
+            ]
+            if any(word in user_input.lower() for word in breakup_keywords):
+                filtered = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_breakup_quote)]
+                if not filtered.empty:
+                    emotion_quotes = filtered
+                else:
+                    # fallback: any quote with a breakup keyword
+                    emotion_quotes = emotion_quotes[emotion_quotes['quote'].str.lower().str.contains('|'.join(breakup_keywords))]
+            else:
+                emotion_quotes = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_love_quote)]
         elif emotion == 'anxiety':
             emotion_quotes = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_anxiety_quote)]
         elif emotion == 'depression':
             emotion_quotes = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_depression_quote)]
+        elif emotion == 'happiness':
+            emotion_quotes = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_happiness_quote)]
+        elif emotion == 'motivation':
+            emotion_quotes = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_motivation_quote)]
+        elif emotion == 'resilience':
+            emotion_quotes = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_failure_quote)]
+        elif emotion == 'mindfulness':
+            emotion_quotes = emotion_quotes[emotion_quotes['quote'].apply(self.is_relevant_loneliness_quote)]
         # Burnout/study/school context filter
         burnout_input_keywords = ['burnout', 'burnt out', 'study', 'school', 'exam', 'university', 'class', 'homework', 'assignment', 'test', 'grades', 'college', 'education', 'teacher', 'student']
         if any(word in user_input.lower() for word in burnout_input_keywords):
