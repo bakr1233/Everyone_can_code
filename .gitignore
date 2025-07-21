@@ -105,3 +105,14 @@ dmypy.json
 # Temporary files
 *.tmp
 *.temp 
+
+# Ignore large dataset files
+/data/processed/all_archive_quotes_cleaned.csv
+/data/processed/archive/quotes.csv
+/data/processed/archive/train.txt
+/data/processed/archive/test.txt
+/data/processed/archive/valid.txt
+/data/processed/archive/lessreal-data.csv
+/data/processed/archive/stoic_quotes_full.csv
+/data/processed/archive/Scraping_done.csv
+/data/processed/archive/archive (3) 2/ 
