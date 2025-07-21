@@ -1,4 +1,5 @@
-# WiseAI - Intelligent Quote Recommendation System    DATA : https://drive.google.com/drive/folders/14stzzpo-ZcMv-FhbrgyZqA9Hw5Su0kKa?usp=drive_link 
+# WiseAI - Intelligent Quote Recommendation System    
+# DATA Folder: https://drive.google.com/drive/folders/14stzzpo-ZcMv-FhbrgyZqA9Hw5Su0kKa?usp=drive_link 
 
 A comprehensive AI-powered quote recommendation system with iOS app integration, featuring emotion-based quote matching and intelligent problem-solution guidance.
 
